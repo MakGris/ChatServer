@@ -21,7 +21,8 @@ link_directories(${PostgreSQL_LIBRARY_DIRS})
 # PRIVATE (libpqxx::pqxx)
 # PRIVATE (PostgreSQL::PostgreSQL)
 add_executable(ChatServer main.cpp
-    serverconnect.h serverconnect.cpp)
+    serverconnect.h serverconnect.cpp
+    database.h database.cpp)
 include(GNUInstallDirs)
 target_link_libraries(ChatServer
 

@@ -1,8 +1,30 @@
 #include "serverconnect.h"
 
+#include <cstring>
+
 ServerConnect::ServerConnect()
 {
 
+    PGresult *res = data.select("select * from newtable");
+    cout << "Запрос выполнен " << PQntuples(res) << PQnfields(res) <<  endl;
+    for (int i = 0; i < PQntuples(res); i++)
+    {
+        cout << "Читаем строку " << endl;
+        for (int j = 0; j < PQnfields(res); j++){
+            cout << "Читаем столбец " << PQgetvalue(res, i, j) <<  endl;
+        }
+        //     printf("%-15s", PQgetvalue(res, i, j));
+        // printf("\n");
+    }
+
+
+
+
+    sockFileDescriptor = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockFileDescriptor == -1) {
+        cout << "Failed to create socket" << endl;
+        exit(EXIT_FAILURE);
+    }
     sockAddr.sin_family = AF_INET;
     sockAddr.sin_addr.s_addr = INADDR_ANY;
     sockAddr.sin_port = htons(9999);
@@ -56,13 +78,20 @@ void ServerConnect::clientAuth(int sock) {
     position += 4;
     char* passwordTemp = new char(passwordLenght);
     memcpy(passwordTemp, &buf[position], passwordLenght);
-    if(*loginTmp == *login && *passwordTemp == *password) {
-        authentification = true;
-        cout << "Auth true" << endl;
+    PGresult *res = data.select("select * from auth where login = '" + string (loginTmp) + "' and _password = '" + string (passwordTemp)+"'");
+    cout << "select * from auth where login = '" + string (loginTmp) + "' and _password = '" + string (passwordTemp)+"'" << endl;
+    if (PQntuples(res)) {
+        cout << "authentification complete" << endl;
     } else {
-        authentification = false;
-        cout << "Auth false" << endl;
+        cout << "authentification false" << endl;
     }
+    // if(*loginTmp == *login && *passwordTemp == *password) {
+    //     authentification = true;
+    //     cout << "Auth true" << endl;
+    // } else {
+    //     authentification = false;
+    //     cout << "Auth false" << endl;
+    // }
     memcpy(answerBufAuth, &packType, 4);
     memcpy(&answerBufAuth[4], &authentification, 1);
     send(sock, answerBufAuth, 5, 0);
